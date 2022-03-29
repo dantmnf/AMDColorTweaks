@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+        <_SolutionOutputPath>$(SolutionDir)\bin\$(Configuration)\$(Platform)</_SolutionOutputPath>
+        <OutputPath>$(_SolutionOutputPath)</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+</Project>

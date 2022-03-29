@@ -1,0 +1,5 @@
+<Project>
+  <Target Name="CopyLcms2Dll" AfterTargets="Build">
+	  <Copy SourceFiles="$(OutDir)\lcms2.dll" DestinationFolder="$(_SolutionOutputPath)" SkipUnchangedFiles="true" ContinueOnError="true" />
+  </Target>
+</Project>

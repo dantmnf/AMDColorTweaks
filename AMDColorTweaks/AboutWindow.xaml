@@ -1,0 +1,33 @@
+﻿<Window x:Class="AMDColorTweaks.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AMDColorTweaks"
+        mc:Ignorable="d"
+        Title="About"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True">
+    <StackPanel >
+        <TextBlock Margin="16" HorizontalAlignment="Stretch" TextAlignment="Left">
+            <Run FontSize="16">AMDColorTweaks</Run>
+            <LineBreak/>
+            by dantmnf
+            <LineBreak/>
+            Published under the MIT license.
+            <LineBreak/>
+            <LineBreak/>
+            Find source code, releases, and usage at
+            <LineBreak />
+            <Hyperlink RequestNavigate="Hyperlink_RequestNavigate"  NavigateUri="https://github.com/dantmnf/AMDColorTweaks">https://github.com/dantmnf/AMDColorTweaks</Hyperlink>
+        </TextBlock>
+        <Grid Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+            <DockPanel Margin="12" LastChildFill="False">
+                <Button DockPanel.Dock="Right" Height="24" Width="80" IsCancel="True">Close</Button>
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Window>
