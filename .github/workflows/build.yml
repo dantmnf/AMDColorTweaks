@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches: [ master ]
-  dispatch:
+  workflow_dispatch:
 
 jobs:
   build-amd64:
