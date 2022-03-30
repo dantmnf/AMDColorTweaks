@@ -1,0 +1,52 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  dispatch:
+
+jobs:
+  build-amd64:
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    - name: fetch cache
+      id: cache-lcms
+      uses: actions/cache@v3
+      with:
+        path: littlecms\lcms2-2.13.1
+        key: lcms2-2.13.1-amd64
+    - name: build Little CMS
+      if: steps.cache-lcms.outputs.cache-hit != 'true'
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        cd littlecms
+        call download.bat
+        msbuild /p:Configuration=Release;Platform=x64 lcms2-2.13.1\Projects\VC2022\lcms2_DLL\lcms2_DLL.vcxproj
+    - name: build tool
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        msbuild /p:Configuration=Release;Platform=x64
+        tar caf AMDColorTweaks.zip -C bin\Release\x64 AMDColorTweaks.exe lcms2.dll
+    - name: artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        # Artifact name
+        name: bin
+        # Directory containing files to upload
+        path: bin
+    - name: prerelease
+      uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "ci-build"
+        prerelease: true
+        title: "Latest Development Build"
+        files: |
+          AMDColorTweaks.zip
