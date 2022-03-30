@@ -63,12 +63,34 @@ namespace AMDColorTweaks.LittleCms
             gamut.PredefinedGamut = ADL.ADLGamutSpace.ADL_GAMUT_SPACE_CUSTOM;
             gamut.PredefinedWhitePoint = ADL.ADLWhitePoint.ADL_WHITE_POINT_CUSTOM;
 
-            var rXYZ = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigRedColorantTag);
-            var gXYZ = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigGreenColorantTag);
-            var bXYZ = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigBlueColorantTag);
-            var rxyY = rXYZ->ToCIExyY();
-            var gxyY = gXYZ->ToCIExyY();
-            var bxyY = bXYZ->ToCIExyY();
+            var chrm = (cmsCIExyY*)CmsNative.cmsReadTag(profile, cmsTagSignature.cmsSigChromaticityTag);
+            cmsCIExyY rxyY, gxyY, bxyY;
+            if (chrm != null)
+            {
+                rxyY = chrm[0];
+                gxyY = chrm[1];
+                bxyY = chrm[2];
+            }
+            else
+            {
+                // [rgb]XYZ is PCS-relative (D50), adapt to white point
+                var rXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigRedColorantTag);
+                var gXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigGreenColorantTag);
+                var bXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigBlueColorantTag);
+                var d50 = CmsNative.cmsD50_XYZ();
+
+                var result = CmsNative.cmsAdaptToIlluminant(out var rXYZ, d50, wtpt, rXYZ_pcs) != 0;
+                result &= CmsNative.cmsAdaptToIlluminant(out var gXYZ, d50, wtpt, gXYZ_pcs) != 0;
+                result &= CmsNative.cmsAdaptToIlluminant(out var bXYZ, d50, wtpt, bXYZ_pcs) != 0;
+                if (!result)
+                {
+                    throw new FileFormatException("cmsAdaptToIlluminant failed");
+                }
+                rxyY = rXYZ.ToCIExyY();
+                gxyY = gXYZ.ToCIExyY();
+                bxyY = bXYZ.ToCIExyY();
+            }
+
             var wxyY = wtpt->ToCIExyY();
             gamut.CustomRed.X = rxyY.x;
             gamut.CustomRed.Y = rxyY.y;

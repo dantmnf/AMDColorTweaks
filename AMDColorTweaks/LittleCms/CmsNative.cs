@@ -8,7 +8,7 @@ using System.ComponentModel;
 
 namespace AMDColorTweaks.LittleCms
 {
-   
+
     public enum cmsTagSignature
     {
         cmsSigAToB0Tag = 0x41324230,  // 'A2B0'
@@ -208,5 +208,11 @@ namespace AMDColorTweaks.LittleCms
         public static extern cmsColorSpaceSignature cmsGetPCS(IntPtr hProfile);
         [DllImport("lcms2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         public static extern cmsColorSpaceSignature cmsGetColorSpace(IntPtr hProfile);
+        [DllImport("lcms2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern int cmsAdaptToIlluminant(out cmsCIEXYZ result, in cmsCIEXYZ SourceWhitePt, in cmsCIEXYZ Illuminant, in cmsCIEXYZ Value);
+        [DllImport("lcms2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern unsafe int cmsAdaptToIlluminant(out cmsCIEXYZ result, cmsCIEXYZ* SourceWhitePt, cmsCIEXYZ* Illuminant, cmsCIEXYZ* Value);
+        [DllImport("lcms2", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        public static extern unsafe cmsCIEXYZ* cmsD50_XYZ();
     }
 }

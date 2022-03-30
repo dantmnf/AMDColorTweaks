@@ -30,7 +30,6 @@ AMD control panel also provides a "Color Temperature Control" switch to convert 
 
 # Known issues
 
-* The space of chromaticity values passed to the driver is to be determined (PCS-relative vs. illumient-relative).
 * The usage / effect of "Apply degamma instead" switch in "Edit Transfer" window is to be determined.
 
 # Building from source
