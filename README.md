@@ -9,7 +9,7 @@ AMD control panel also provides a "Color Temperature Control" switch to convert 
 * From [ledoge/novideo_srgb](https://github.com/ledoge/novideo_srgb):
   > * Since the color space conversion is done on the GPU side, the ICC profile must not be selected/loaded in Windows or any other application. If you want, you can do another profiling run on top of the active calibration and then use this profile in applications that support color management to achieve even better color accuracy.
   > * To achieve optimal results, consider creating a custom testchart in DisplayCAL with a high number of neutral (grayscale) patches. With those, a grayscale calibration (setting "Tone curve" to anything other than "As measured") should be unnecessary and might even be detrimental to the accuracy. The number of colored patches should not matter much. Additionally, configuring DisplayCAL to generate a "Curves + matrix" profile with "Black point compensation" disabled may also result in better accuracy than with an XYZ LUT profile.
-* Only `vcgt` (if present), `rXYZ`, `gXYZ`, `bXYZ`, `rTRC`, `gTRC`, `bTRC` in ICC profile are used.
+* Only `vcgt` (if present), `chrm` (if present), `rXYZ`, `gXYZ`, `bXYZ`, `rTRC`, `gTRC`, `bTRC`, `wtpt` in ICC profile are used.
 * You can generate an ICC profile from EDID in DisplayCAL by selecting "Create profile from extended display identification data..." in "File" menu.
 # FAQ
 
@@ -20,10 +20,10 @@ AMD control panel also provides a "Color Temperature Control" switch to convert 
   Simply apply it again.
 
 * ### I clicked on the Apply button and the system hangs
-  Ask AMD why they don't validate input from unprivileged userspace API. ¯\\_(ツ)_/¯ 
+  Ask AMD why they don't validate input from unprivileged userspace API. ¯\\\_(ツ)\_/¯ 
 
 * ### I see banding!
-  ¯\\_(ツ)_/¯ 
+  ¯\\\_(ツ)\_/¯ 
 
 * ### What about source transfer?
   It is managed by Windows for proper hardware multi-layer composition.
