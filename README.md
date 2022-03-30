@@ -1,6 +1,8 @@
 # About
 This tool uses an undocumented AMD API, to convert color space before sending them to a display that effectively implements color-managed output (e.g. clamp content to sRGB), based on the chromaticities and transfer characteristics provided.
 
+AMD control panel also provides a "Color Temperature Control" switch to convert colors to color space defined in EDID, but it is not possible to convert colors to custom color spaces (e.g. from measured ICC profile).
+
 ⏬ **[Download latest release](https://github.com/dantmnf/AMDColorTweaks/releases/tag/ci-build)**
 
 # Notes for use with ICC profiles
