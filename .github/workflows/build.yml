@@ -28,6 +28,20 @@ jobs:
         cd littlecms
         call download.bat
         msbuild /p:Configuration=Release;Platform=x64 lcms2-2.13.1\Projects\VC2022\lcms2_DLL\lcms2_DLL.vcxproj
+    - name: fetch nuget cache
+      id: cache-nuget
+      uses: actions/cache@v1
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets') }} #hash of project files
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    - name: nuget restore
+      shell: cmd
+      if: steps.cache-nuget.outputs.cache-hit != 'true'
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        msbuild /p:Configuration=Release;Platform=x64 /t:Restore
     - name: build tool
       shell: cmd
       run: |
