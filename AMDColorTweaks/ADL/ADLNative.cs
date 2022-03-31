@@ -47,5 +47,11 @@ namespace AMDColorTweaks.ADL
         public static extern int ADL2_Display_RegammaR1_Set(IntPtr context, int iAdapterIndex, int iDisplayIndex, in ADLRegammaEx regamma);
         [DllImport("atiadlxx")]
         public static extern int ADL2_Display_HDRState_Get(IntPtr context, int iAdapterIndex, ADLDisplayID iDisplayIndex, out int iSupport, out int iEnable);
+        [DllImport("atiadlxx")]
+        public static extern int ADL2_Display_GamutMapping_Get(IntPtr context, int iAdapterIndex, int iDisplayIndex, int layer, ref ADLDisplayGamutMatrix matrix);
+        [DllImport("atiadlxx")]
+        public static extern int ADL2_Display_GamutMapping_Set(IntPtr context, int iAdapterIndex, int iDisplayIndex, int layer, ref ADLDisplayGamutMatrix matrix);
+        [DllImport("atiadlxx")]
+        public static extern int ADL2_Display_GamutMapping_Reset(IntPtr context, int iAdapterIndex, int iDisplayIndex, int layer);
     }
 }

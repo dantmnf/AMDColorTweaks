@@ -83,63 +83,70 @@ namespace AMDColorTweaks
             var adapterid = display.AdapterId;
             var displayid = display.DisplayId;
 
-            using var adlContext = new ADLContext(true);
+            try
+            {
+                using var adlContext = new ADLContext(true);
 
-            if (display.GetHdrStatus(adlContext).Enabled)
-            {
-                MessageBox.Show(this, "HDR not supported", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            GamutViewModel? oldDstGamut = null;
-            GamutViewModel? oldSrcGamut = null;
-            TransferViewModel? oldTransfer = null;
-            if (viewModel.UseDestinationSetting)
-            {
-                var dstmodel = viewModel.CurrentDestinationViewModel;
-                if (dstmodel != null)
+                if (display.GetHdrStatus(adlContext).Enabled)
                 {
-                    oldDstGamut = display.GetDestinationGamut(adlContext);
-                    var dstgamutdata = dstmodel.ToADL();
-                    ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, dstgamutdata);
-                    if (viewModel.UseRegamma)
+                    MessageBox.Show(this, "HDR not supported", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                GamutViewModel? oldDstGamut = null;
+                GamutViewModel? oldSrcGamut = null;
+                TransferViewModel? oldTransfer = null;
+                if (viewModel.UseDestinationSetting)
+                {
+                    var dstmodel = viewModel.CurrentDestinationViewModel;
+                    if (dstmodel != null)
                     {
-                        oldTransfer = display.GetOutputTransfer(adlContext);
-                        ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, viewModel.TransferSetting.ToADLRegammaEx());
+                        oldDstGamut = display.GetDestinationGamut(adlContext);
+                        var dstgamutdata = dstmodel.ToADL();
+                        ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, dstgamutdata);
+                        if (viewModel.UseRegamma)
+                        {
+                            oldTransfer = display.GetOutputTransfer(adlContext);
+                            ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, viewModel.TransferSetting.ToADLRegammaEx());
+                        }
+                    }
+                }
+                if (viewModel.UseSourceSetting)
+                {
+                    oldSrcGamut = display.GetSourceGamut(adlContext);
+                    var srcmodel = viewModel.CurrentSourceViewModel;
+                    if (srcmodel != null)
+                    {
+                        var srcgamutdata = srcmodel.ToADL();
+                        ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, srcgamutdata);
+                    }
+                }
+                var confirmDlg = new ConfirmSettingsWindow() { Owner = this };
+
+                if (confirmDlg.ShowDialog().GetValueOrDefault(false))
+                {
+                    // confirmed
+                    RefreshADLDisplays();
+                }
+                else
+                {
+                    // revert
+                    if (viewModel.UseDestinationSetting && oldDstGamut != null)
+                    {
+                        ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, oldDstGamut.ToADL());
+                        if (viewModel.UseRegamma && oldTransfer != null)
+                        {
+                            ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, oldTransfer.ToADLRegammaEx());
+                        }
+                    }
+                    if (viewModel.UseSourceSetting && oldSrcGamut != null)
+                    {
+                        ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, oldSrcGamut.ToADL());
                     }
                 }
             }
-            if (viewModel.UseSourceSetting)
+            catch (Exception ex)
             {
-                oldSrcGamut = display.GetSourceGamut(adlContext);
-                var srcmodel = viewModel.CurrentSourceViewModel;
-                if (srcmodel != null)
-                {
-                    var srcgamutdata = srcmodel.ToADL();
-                    ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, srcgamutdata);
-                }
-            }
-            var confirmDlg = new ConfirmSettingsWindow() { Owner = this };
-
-            if (confirmDlg.ShowDialog().GetValueOrDefault(false))
-            {
-                // confirmed
-                RefreshADLDisplays();
-            }
-            else
-            {
-                // revert
-                if (viewModel.UseDestinationSetting && oldDstGamut != null)
-                {
-                    ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, oldDstGamut.ToADL());
-                    if (viewModel.UseRegamma && oldTransfer != null)
-                    {
-                        ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, oldTransfer.ToADLRegammaEx());
-                    }
-                }
-                if (viewModel.UseSourceSetting && oldSrcGamut != null)
-                {
-                    ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, oldSrcGamut.ToADL());
-                }
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -152,29 +159,36 @@ namespace AMDColorTweaks
             var adapterid = display.AdapterId;
             var displayid = display.DisplayId;
 
-            using var adlContext = new ADLContext(true);
-
-            var hdr = display.GetHdrStatus(adlContext).Enabled;
-            if (hdr)
+            try
             {
-                MessageBox.Show(this, "HDR not supported", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-            var gamutdata = new ADLGamutData() { iPredefinedGamut = hdr ? ADLGamutSpace.ADL_GAMUT_SPACE_CCIR_2020 : ADLGamutSpace.ADL_GAMUT_SPACE_CIE_RGB, iPredefinedWhitePoint = ADLWhitePoint.ADL_WHITE_POINT_6500K };
-            var transfer = new TransferViewModel() { TransferType = TransferType.ParametricOETF, UseUniformParametricCurve = true };
-            transfer.UniformCurve.A0 = 0.0031308;
-            transfer.UniformCurve.A1 = 12.92;
-            transfer.UniformCurve.A2 = 0.055;
-            transfer.UniformCurve.A3 = 0.055;
-            transfer.UniformCurve.Gamma = 2.4;
+                using var adlContext = new ADLContext(true);
 
-            var gammadata = transfer.ToADLRegammaEx();
-            ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, gamutdata);
-            ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, gamutdata);
-            ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, gammadata);
-            //gammadata.Feature |= ADLRegammaExFeature.ADL_APPLY_DEGAMMA;
-            //ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, gammadata);
-            RefreshADLDisplays();
+                var hdr = display.GetHdrStatus(adlContext).Enabled;
+                if (hdr)
+                {
+                    MessageBox.Show(this, "HDR not supported", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                var gamutdata = new ADLGamutData() { iPredefinedGamut = hdr ? ADLGamutSpace.ADL_GAMUT_SPACE_CCIR_2020 : ADLGamutSpace.ADL_GAMUT_SPACE_CIE_RGB, iPredefinedWhitePoint = ADLWhitePoint.ADL_WHITE_POINT_6500K };
+                var transfer = new TransferViewModel() { TransferType = TransferType.ParametricOETF, UseUniformParametricCurve = true };
+                transfer.UniformCurve.A0 = 0.0031308;
+                transfer.UniformCurve.A1 = 12.92;
+                transfer.UniformCurve.A2 = 0.055;
+                transfer.UniformCurve.A3 = 0.055;
+                transfer.UniformCurve.Gamma = 2.4;
+
+                var gammadata = transfer.ToADLRegammaEx();
+                ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.SourceGraphics, gamutdata);
+                ADLNative.ADL2_Display_Gamut_Set(adlContext, adapterid, displayid, ADLGamutReference.DestinationGraphics, gamutdata);
+                ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, gammadata);
+                //gammadata.Feature |= ADLRegammaExFeature.ADL_APPLY_DEGAMMA;
+                //ADLNative.ADL2_Display_RegammaR1_Set(adlContext, adapterid, displayid, gammadata);
+                RefreshADLDisplays();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void HandleClose(object sender, RoutedEventArgs e)
@@ -228,6 +242,11 @@ namespace AMDColorTweaks
                     MessageBox.Show(this, ex.Message, Title, MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+
+        private void HandleErrorDismiss(object sender, RoutedEventArgs e)
+        {
+            viewModel.ShowError = false;
         }
     }
 }

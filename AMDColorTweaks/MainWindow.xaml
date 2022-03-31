@@ -10,7 +10,7 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <StackPanel Margin="8">
-        <Grid >
+        <Grid x:Name="displaySelectBar">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="1*"/>
@@ -26,7 +26,7 @@
                       ItemsSource="{Binding AvailiableDisplays}" SelectedValue="{Binding CurrentDisplay}"/>
             <Button Grid.Column="2" Click="HandleRefersh" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="4,0,0,0" Padding="4,2">Refresh</Button>
         </Grid>
-        <Grid HorizontalAlignment="Center" Margin="0,8,0,0" >
+        <Grid HorizontalAlignment="Center" Margin="0,4,0,0" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
@@ -35,12 +35,21 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Border Grid.ColumnSpan="2" Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Visibility="{Binding IsCurrentDisplayHDR, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" TextOptions.TextHintingMode="Animated" TextOptions.TextRenderingMode="Grayscale" LineStackingStrategy="BlockLineHeight"  Margin="4">&#xE7ba;</TextBlock>
-                    <TextBlock LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center" >Display is in HDR mode.</TextBlock>
-                </StackPanel>
-            </Border>
+            <StackPanel Grid.ColumnSpan="2" Margin="0,0,0,4" Width="{Binding ActualWidth, ElementName=displaySelectBar}" >
+                <Border Background="{DynamicResource {x:Static SystemColors.InfoBrushKey}}" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Visibility="{Binding IsCurrentDisplayHDR, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" TextOptions.TextHintingMode="Animated" TextOptions.TextRenderingMode="Grayscale" LineStackingStrategy="BlockLineHeight"  Margin="4">&#xE7ba;</TextBlock>
+                        <TextBlock LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center" >Display is in HDR mode.</TextBlock>
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFFFE1E1" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Visibility="{Binding ShowError, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,5,0,0">
+                    <DockPanel>
+                        <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" TextOptions.TextHintingMode="Animated" TextOptions.TextRenderingMode="Grayscale" LineStackingStrategy="BlockLineHeight"  Margin="4">&#xEb90;</TextBlock>
+                        <TextBlock LineStackingStrategy="BlockLineHeight" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap"></TextBlock>
+                        <Button VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,2,0" Padding="2,1,2,1" Click="HandleErrorDismiss">Dismiss</Button>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
 
             <GroupBox Grid.Row="1" Margin="0,0,4,0" Padding="4">
                 <GroupBox.Header>

@@ -36,7 +36,7 @@ namespace AMDColorTweaks.ADL
             if (err < 0)
             {
                 var msg = ((ADLResultCode)err).ToString();
-                throw new SystemException($"ADL Error: $msg");
+                throw new SystemException($"ADL Error: {msg}");
             }
             return err;
         }

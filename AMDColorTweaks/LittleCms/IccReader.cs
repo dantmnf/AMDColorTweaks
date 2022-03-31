@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using AMDColorTweaks.ViewModel;
 using AMDColorTweaks.Util;
+using System.Buffers.Binary;
 
 namespace AMDColorTweaks.LittleCms
 {
@@ -25,14 +26,53 @@ namespace AMDColorTweaks.LittleCms
             throw new ArgumentNullException(nameof(trc));
         }
 
+        private static double Det3x3(double[,] matrix)
+        {
+            return matrix[0, 0] * (matrix[1, 1] * matrix[2, 2] - matrix[1, 2] * matrix[2, 1]) -
+                   matrix[0, 1] * (matrix[1, 0] * matrix[2, 2] - matrix[1, 2] * matrix[2, 0]) +
+                   matrix[0, 2] * (matrix[1, 0] * matrix[2, 1] - matrix[1, 1] * matrix[2, 0]);
+        }
 
+        private static double[,] InverseMatrix3x3(double[,] matrix)
+        {
+            var det = Det3x3(matrix);
+            var inv = new double[3, 3];
+            inv[0, 0] = (matrix[1, 1] * matrix[2, 2] - matrix[1, 2] * matrix[2, 1]) / det;
+            inv[0, 1] = (matrix[0, 2] * matrix[2, 1] - matrix[0, 1] * matrix[2, 2]) / det;
+            inv[0, 2] = (matrix[0, 1] * matrix[1, 2] - matrix[0, 2] * matrix[1, 1]) / det;
+            inv[1, 0] = (matrix[1, 2] * matrix[2, 0] - matrix[1, 0] * matrix[2, 2]) / det;
+            inv[1, 1] = (matrix[0, 0] * matrix[2, 2] - matrix[0, 2] * matrix[2, 0]) / det;
+            inv[1, 2] = (matrix[0, 2] * matrix[1, 0] - matrix[0, 0] * matrix[1, 2]) / det;
+            inv[2, 0] = (matrix[1, 0] * matrix[2, 1] - matrix[1, 1] * matrix[2, 0]) / det;
+            inv[2, 1] = (matrix[0, 1] * matrix[2, 0] - matrix[0, 0] * matrix[2, 1]) / det;
+            inv[2, 2] = (matrix[0, 0] * matrix[1, 1] - matrix[0, 1] * matrix[1, 0]) / det;
+            return inv;
+        }
+
+        private static double[,] MultiplyMatrix3x3(double[,] a, double[,] b)
+        {
+            var c = new double[3, 3];
+            for (var i = 0; i < 3; i++)
+            {
+                for (var j = 0; j < 3; j++)
+                {
+                    c[i, j] = 0;
+                    for (var k = 0; k < 3; k++)
+                    {
+                        c[i, j] += a[i, k] * b[k, j];
+                    }
+                }
+            }
+            return c;
+        }
 
         private static unsafe IntPtr MustReadTag(IntPtr profile_, cmsTagSignature tag)
         {
             var result = CmsNative.cmsReadTag(profile_, tag);
             if (result == IntPtr.Zero)
             {
-                var tagName = Encoding.ASCII.GetString((byte*)&tag, 4);
+                var gat = BinaryPrimitives.ReverseEndianness((uint)tag);
+                var tagName = Encoding.ASCII.GetString((byte*)&gat, 4);
                 throw new FileFormatException($"tag {tagName} not found");
             }
             return result;
@@ -77,6 +117,7 @@ namespace AMDColorTweaks.LittleCms
                 var rXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigRedColorantTag);
                 var gXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigGreenColorantTag);
                 var bXYZ_pcs = (cmsCIEXYZ*)MustReadTag(profile, cmsTagSignature.cmsSigBlueColorantTag);
+
                 var d50 = CmsNative.cmsD50_XYZ();
 
                 var result = CmsNative.cmsAdaptToIlluminant(out var rXYZ, d50, wtpt, rXYZ_pcs) != 0;

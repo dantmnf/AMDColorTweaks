@@ -213,4 +213,13 @@ namespace AMDColorTweaks.ADL
 
         public ADLRegammaEx() { }
     }
+
+    public struct ADLDisplayGamutMatrix
+    {
+        public int iSize;
+        [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.I4, SizeConst = 3*3)]
+        public int[] iMatrixSettings;
+        [MarshalAs(UnmanagedType.ByValArray, ArraySubType = UnmanagedType.I4, SizeConst = 3)]
+        public int[] iOffsets;
+    }
 }
