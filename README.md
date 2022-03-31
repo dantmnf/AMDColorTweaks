@@ -31,6 +31,7 @@ AMD control panel also provides a "Color Temperature Control" switch to convert 
 # Known issues
 
 * The usage / effect of "Apply degamma instead" switch in "Edit Transfer" window is to be determined.
+* Custom transfer is not peserved across reboots.
 
 # Building from source
 
