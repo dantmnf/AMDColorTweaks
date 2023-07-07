@@ -44,23 +44,11 @@ namespace AMDColorTweaks
 
         private void RefreshADLDisplays()
         {
+            var last = viewModel.CurrentDisplay ?? viewModel.AvailiableDisplays.FirstOrDefault();
+            var laststr = last?.ToString() ?? ""; 
             viewModel.RefreshDisplays();
-            if (viewModel.CurrentDisplay == null)
-            {
-                viewModel.CurrentDisplay = viewModel.AvailiableDisplays.FirstOrDefault();
-            }
-            else
-            {
-                var index = viewModel.AvailiableDisplays.IndexOf(viewModel.CurrentDisplay);
-                if (index == -1)
-                {
-                    viewModel.CurrentDisplay = null;
-                }
-                else
-                {
-                    viewModel.CurrentDisplay = viewModel.AvailiableDisplays[index];
-                }
-            }
+            var lastelm = viewModel.AvailiableDisplays.FirstOrDefault(x => x.ToString() == laststr);
+            viewModel.CurrentDisplay = lastelm ?? viewModel.AvailiableDisplays.First();
         }
 
         private unsafe void HandleApply(object sender, RoutedEventArgs e)

@@ -11,56 +11,6 @@ using System.Threading.Tasks;
 
 namespace AMDColorTweaks.ViewModel
 {
-    internal class DisplayItem
-    {
-        public string Name { get; init; }
-        public string AdapterName { get; init; }
-        public int AdapterId { get; init; }
-        public int DisplayId { get; init; }
-        public string OSDisplayName { get; init; }
-        public ADLDisplayID AdlId { get; init; }
-        public DisplayItem(in AdapterInfo adapterInfo, in ADLDisplayInfo displayInfo)
-        {
-            var dispname = displayInfo.strDisplayName ?? "<Unknown Display>";
-            var dispid = displayInfo.displayID.iDisplayLogicalIndex;
-            Name = dispname;
-            AdapterId = adapterInfo.iAdapterIndex;
-            AdapterName = adapterInfo.strAdapterName;
-            OSDisplayName = adapterInfo.strDisplayName;
-            DisplayId = dispid;
-            AdlId = displayInfo.displayID;
-            //AvailiableDisplays.Add(new(dispname, adapterid, adaptername, dispid, lpAdapterInfo[i].strDisplayName, dispinfo.displayID));
-        }
-        public override string ToString()
-        {
-            return $"{OSDisplayName} - {Name} ({DisplayId}) on {AdapterName} ({AdapterId})";
-        }
-
-        public (bool Supported, bool Enabled) GetHdrStatus(ADLContext context)
-        {
-            ADLContext.RaiseForError(ADLNative.ADL2_Display_HDRState_Get(context, AdapterId, AdlId, out var supportHdr, out var enableHdr));
-            return (supportHdr != 0, enableHdr != 0);
-        }
-
-        public GamutViewModel GetSourceGamut(ADLContext context)
-        {
-            ADLContext.RaiseForError(ADLNative.ADL2_Display_Gamut_Get(context, AdapterId, DisplayId, ADLGamutReference.SourceGraphics, out var srcgamutdata));
-            return GamutViewModel.FromADL(srcgamutdata);
-        }
-
-        public GamutViewModel GetDestinationGamut(ADLContext context)
-        {
-            ADLContext.RaiseForError(ADLNative.ADL2_Display_Gamut_Get(context, AdapterId, DisplayId, ADLGamutReference.DestinationGraphics, out var dstgamutdata));
-            return GamutViewModel.FromADL(dstgamutdata);
-        }
-
-        public TransferViewModel GetOutputTransfer(ADLContext context)
-        {
-            var regamma = new ADLRegammaEx();
-            ADLContext.RaiseForError(ADLNative.ADL2_Display_RegammaR1_Get(context, AdapterId, DisplayId, ref regamma));
-            return TransferViewModel.FromADLRegammaEx(regamma);
-        }
-    }
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -94,6 +44,7 @@ namespace AMDColorTweaks.ViewModel
 
         public void ReloadCurrentDisplay()
         {
+            ShowError = false;
             var display = CurrentDisplay;
             if (display == null) return;
             try
@@ -120,6 +71,7 @@ namespace AMDColorTweaks.ViewModel
         public void RefreshDisplays()
         {
             AvailiableDisplays.Clear();
+            var dedupFilter = new HashSet<(int, int)>();
             try
             {
                 using var adlContext = new ADLContext(true);
@@ -143,8 +95,16 @@ namespace AMDColorTweaks.ViewModel
                             if (dispinfo.iDisplayInfoMask.HasFlag(ADLDisplayInfoFlags.ADL_DISPLAY_DISPLAYINFO_DISPLAYCONNECTED) && dispinfo.iDisplayInfoValue.HasFlag(ADLDisplayInfoFlags.ADL_DISPLAY_DISPLAYINFO_DISPLAYCONNECTED))
                             {
                                 var dispname = dispinfo.strDisplayName ?? "<Unknown Display>";
-                                var dispid = dispinfo.displayID.iDisplayLogicalIndex;
-                                AvailiableDisplays.Add(new(lpAdapterInfo[i], dispinfo));
+                                var dispid = dispinfo.displayID.iDisplayPhysicalIndex;
+                                var logicalAdpId = dispinfo.displayID.iDisplayLogicalAdapterIndex;
+                                if (logicalAdpId < 0 || logicalAdpId >= iNumberAdapters)
+                                {
+                                    logicalAdpId = dispinfo.displayID.iDisplayPhysicalAdapterIndex;
+                                }
+                                var dedupkey = (dispinfo.displayID.iDisplayPhysicalAdapterIndex, dispinfo.displayID.iDisplayPhysicalIndex);
+                                if (dedupFilter.Contains(dedupkey)) { continue; }
+                                dedupFilter.Add(dedupkey);
+                                AvailiableDisplays.Add(new(lpAdapterInfo[dispinfo.displayID.iDisplayPhysicalAdapterIndex], lpAdapterInfo[logicalAdpId], dispinfo));
                             }
                         }
                     }
