@@ -1,5 +1,9 @@
 # About
-This tool uses an undocumented AMD API, to convert color space before sending them to a display that effectively implements color-managed output (e.g. clamp content to sRGB), based on the chromaticities and transfer characteristics provided.
+
+> ## This project is not actively maintained
+> Check https://github.com/dantmnf/MHC2 for another approach that works with all recent GPUs from different vendors and integrates well with Windows color management.
+
+This tool uses poorly documented AMD APIs, to convert color space before sending them to a display that effectively implements color-managed output (e.g. clamp content to sRGB), based on the chromaticities and transfer characteristics provided.
 
 AMD control panel also provides a "Color Temperature Control" switch to convert colors to color space defined in EDID, but it is not possible to convert colors to custom color spaces (e.g. from measured ICC profile).
 
